@@ -3,6 +3,8 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from scipy.optimize import minimize
 
+np.random.seed(1)
+
 def random_color():
 	return np.random.rand(3)  # Generates an array of 3 random numbers between 0 and 1
 
@@ -34,14 +36,11 @@ def draw_pcd(params):
 	pcd = o3d.geometry.PointCloud()
 	cnt = 0
 	last_pcd = None
-	for id in range(3,5):
-		#dir0 = f'/Users/kisho/open3d/Experiments/dataset_paramEst_auto4/data{id}'
+	for id in range(7):
 		dir0 = f'/Users/kisho/open3d/Experiments/data_pcd/data{id}'
-		# 点群データの読み込み
 		T1 = np.load(f"{dir0}/trans1.npy")
 		T2 = np.load(f"{dir0}/trans2.npy")
 		T3 = np.load(f"{dir0}/trans3.npy")
-		#T4 = np.load(f"{dir0}/trans4.npy")
 		T2[0,3] = params[0]
 		T2[1,3] = params[1]
 		T2[2,3] = params[2]
@@ -54,8 +53,6 @@ def draw_pcd(params):
 		new_pcd.transform(T)
 		if cnt != 0:
 			trans = simple_icp(new_pcd, pcd)
-			#new_pcd.transform(trans)
-			#print(trans)
 			try:
 				t,th = evaluate_trans(trans)
 			except:
@@ -63,22 +60,19 @@ def draw_pcd(params):
 
 			print(params,t)
 			score += t
+			new_pcd.transform(trans)
 
-		#new_pcd.transform(np.linalg.inv(T4))
 		pcd += new_pcd
 		cnt+=1
 	o3d.visualization.draw_geometries([pcd])
 	return score
 
-"""
-initial_params = np.array([0.0, 0.0, 0.002])
-result = minimize(draw_pcd, initial_params)
+
+#initial_params = np.array([0.0, 0.0, 0.002])
+#result = minimize(draw_pcd, initial_params)
 
 # 4. 結果の表示
-print(f"最適化された値: {result.x}")
-print(f"評価関数の最小値: {result.fun}")
-"""
+#print(f"最適化された値: {result.x}")
+#print(f"評価関数の最小値: {result.fun}")
 
-#for d in np.arange(-0.1,0.1,0.01):
-#	draw_pcd(d)
-draw_pcd([0.016,0.0,0.019])
+draw_pcd([0.0,0.0,0.0])
