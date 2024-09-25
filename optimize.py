@@ -30,6 +30,17 @@ def evaluate_trans(trans):
 	print(t,th)
 	return t,th
 
+def params2matrix(params):
+	rot = Rotation.from_euler('xyz', [0.0, -np.pi/2, np.pi/2])
+	quaternion = rot.as_quat()
+	#quaternion = [0.5,-0.5,0.5,0.5]
+	rotation_matrix = Rotation.from_quat(quaternion).as_matrix()
+	translation_vector = np.array([params[0], params[1], params[2]])
+	transformation_matrix = np.eye(4)
+	transformation_matrix[:3, :3] = rotation_matrix  # 回転行列を代入
+	transformation_matrix[:3, 3] = translation_vector  # 平行移動ベクトルを代入
+	return transformation_matrix
+
 
 def draw_pcd(params):
 	score = 0
@@ -41,9 +52,7 @@ def draw_pcd(params):
 		T1 = np.load(f"{dir0}/trans1.npy")
 		T2 = np.load(f"{dir0}/trans2.npy")
 		T3 = np.load(f"{dir0}/trans3.npy")
-		T2[0,3] = params[0]
-		T2[1,3] = params[1]
-		T2[2,3] = params[2]
+		T2 = params2matrix(params)
 		T=T1@T2@T3
 
 		new_pcd = o3d.io.read_point_cloud(f"{dir0}/new_pcd.ply")
@@ -66,7 +75,6 @@ def draw_pcd(params):
 		cnt+=1
 	o3d.visualization.draw_geometries([pcd])
 	return score
-
 
 #initial_params = np.array([0.0, 0.0, 0.002])
 #result = minimize(draw_pcd, initial_params)
